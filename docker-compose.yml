@@ -11,7 +11,7 @@ services:
       - cryptdb_network
     stdin_open: true
     tty: true
-    # command: ./wait-for-it.sh database:3306 -s -- ./cdbserver.sh
+    command: ./wait-for-it.sh database:3306 -s -- ./cdbserver.sh database
   database:
     image: 'rydang/cryptdb-server'
     container_name: 'mysql_server'
