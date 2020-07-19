@@ -1,0 +1,33 @@
+FROM ubuntu:16.04
+
+RUN apt-get update
+
+RUN apt-get install -y sudo ruby git vim less net-tools
+
+ENV MYSQL_ROOT_PASSWORD letmein
+ENV MYSQL_PASSWORD letmein
+ENV DEBIAN_FRONTEND noninteractive
+
+# Install MySQL Server in a Non-Interactive mode. Default root password will be $MYSQL_PASSWORD
+RUN echo "mysql-server mysql-server/root_password password $MYSQL_PASSWORD" | debconf-set-selections
+RUN echo "mysql-server mysql-server/root_password_again password $MYSQL_PASSWORD" | debconf-set-selections
+
+RUN apt-get -y install mysql-server
+
+# initial sql scripts for remote connections
+ADD remote_connections.sql .
+
+RUN service mysql restart \
+  && mysql -uroot -p$MYSQL_PASSWORD < remote_connections.sql
+
+# Clone project repository
+RUN git clone https://github.com/rydang/Practical-Cryptdb.git /opt/cryptdb
+WORKDIR /opt/cryptdb
+
+RUN sed -i 's/apt /apt-get /g' INSTALL_CRYPTDB.sh
+
+RUN ./INSTALL_CRYPTDB.sh
+
+EXPOSE 22 3306
+
+ENTRYPOINT mysqld_safe --bind-address=0.0.0.0

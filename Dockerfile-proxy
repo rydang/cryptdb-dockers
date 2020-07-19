@@ -1,0 +1,24 @@
+FROM ubuntu:16.04
+
+RUN apt-get update
+
+RUN apt-get install -y sudo ruby git vim less net-tools
+
+ENV MYSQL_PASSWORD letmein
+
+# install mysql server in non-interactive mode
+RUN echo "mysql-server mysql-server/root_password password $MYSQL_PASSWORD" | debconf-set-selections
+RUN echo "mysql-server mysql-server/root_password_again password $MYSQL_PASSWORD" | debconf-set-selections
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install mysql-server
+
+# Clone project repository
+RUN git clone https://github.com/rydang/Practical-Cryptdb.git /opt/cryptdb
+WORKDIR /opt/cryptdb
+
+RUN sed -i 's/apt /apt-get /g' INSTALL.sh
+
+RUN ./INSTALL.sh
+
+ADD wait-for-it.sh .
+
+ENV TERM xterm
